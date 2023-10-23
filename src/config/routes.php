@@ -21,5 +21,10 @@ return [
 		'controller' => 'user',
 		'action' => 'converter',
 	],
+
+	'user/logout' => [
+		'controller' => 'user',
+		'action' => 'logout',
+	],
 	
 ];

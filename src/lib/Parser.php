@@ -40,7 +40,7 @@ class Parser
                     'nominal' => (string)$valute->Nominal,
                     'valute' => (string)$valute->Name,
                     'rate' => (string)$valute->Value,
-                    'vunit_rate' => (string)$valute->VunitRate,
+                    'vunit_rate' => (string)str_replace(',', '.', $valute->VunitRate),
                     'update_time' => date('Y-m-d H:i:s'),
                 ];
                 $this->params[] = $currentParams;
@@ -49,4 +49,5 @@ class Parser
             echo "XML не загружен или пуст.";
         }
     }
+
 }

@@ -4,10 +4,12 @@ namespace src\core;
 
 use src\core\View;
 
+
 class Router
 {
     protected $routes = [];
     protected $params = [];
+
 
     public function __construct()
     {
@@ -17,11 +19,13 @@ class Router
         }
     }
 
+
     public function add($route, $params)
     {
         $route = "#^" . $route . "$#";
         $this->routes[$route] = $params;
     }
+
 
     public function match()
     {
@@ -35,14 +39,15 @@ class Router
         return false; 
     }
 
+
     public function run()
     {
         if ($this->match()) {
-            $controller_path = 'src\controllers\\' . ucfirst($this->params['controller']) . 'Controller';
-            if (class_exists($controller_path)) {
+            $controllerPath = 'src\controllers\\' . ucfirst($this->params['controller']) . 'Controller';
+            if (class_exists($controllerPath)) {
                 $action = $this->params['action'] . "Action";
-                if (method_exists($controller_path, $action)) {
-                    $controller = new $controller_path($this->params);
+                if (method_exists($controllerPath, $action)) {
+                    $controller = new $controllerPath($this->params);
                     $controller->$action();
                 } else {
                     View::errorsCode(404);
@@ -52,7 +57,6 @@ class Router
             }
         } else {
             View::errorsCode(404);
-        }
-        
+        }      
     }
 }

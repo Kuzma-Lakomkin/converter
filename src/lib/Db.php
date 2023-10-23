@@ -19,7 +19,7 @@ class Db
 
     public function query($sql, $params = [])
     {
-        $query = $this->db->prepare($sql, $params);
+        $query = $this->db->prepare($sql);
         if (!empty($params)) {
             foreach ($params as $key => $value) {
                 $query->bindValue(':' . $key, $value);
@@ -38,6 +38,6 @@ class Db
     public function column($sql, $params = [])
     {
         $result = $this->query($sql, $params);
-        return $result->fetchColumn(PDO::FETCH_ASSOC);
+        return $result->fetchColumn();
     }
 }

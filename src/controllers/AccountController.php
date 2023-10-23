@@ -4,30 +4,40 @@ namespace src\controllers;
 
 use src\core\Controller;
 
+
 class AccountController extends Controller
 {
     public function loginAction()
     {
-        $this->view->render("Авторизация");
+        if (!empty($_POST)) {
+            $result = $this->model->entryToApplication($_POST);
+            if (!$result) {
+                // Если аутентификация не удалась, возвращаем JSON с ошибкой
+                header('Content-Type: application/json');
+                echo json_encode(['error' => 'Login or password entered incorrectly']);
+            } else {
+                // Если аутентификация успешна, возвращаем JSON с сообщением об успешной аутентификации
+                header('Content-Type: application/json');
+                echo json_encode(['success' => 'Login successful']);
+            }
+        } else {
+            // В любом случае отображаем HTML-форму
+            $this->view->render("Авторизация");
+        }        
     }
+
 
     public function registerAction()
     {
-        $nonEmptyValues = array_filter($_POST, function ($value) {
-            return $value !== null && $value !== "";
-        }); 
-        if (!empty($nonEmptyValues)) {
-            if (!$this->model->validateRegistration($_POST)) {
-                foreach ($this->model->errors as $errorArray) {
-                    foreach ($errorArray as $error) {
-                        $this->view->message('error', $error);
-                    }    
+        if (!empty($_POST)) { 
+            $response = $this->model->validateRegistration($_POST);
+                if ($response === true) {
+                    echo json_encode(['success' => 'success']);
+                    exit;
+                } else {
+                    echo json_encode(['error' => $this->model->getErrors()]);
                 }
-            } else {
-                echo 'YES';
-            }
-        } else {
-            $this->view->message('error', 'empty values');
+        exit;
         }
         $this->view->render("Регистрация");
     }

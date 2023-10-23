@@ -15,7 +15,7 @@ class View
         $this->path = $this->route['controller'] . '/'. $this->route['action'] . '.php';
     }
 
-    public function render($title, $vars= [])
+    public function render($title, $vars= [], $template=false)
     {   
         extract($vars);
         $views_path = '../src/views/' . $this->path;
@@ -31,7 +31,7 @@ class View
 
     public function redirect($url)
     {
-        header('location:', $url);
+        header('Location: ' . $url);
     }
 
     public static function errorsCode($code)
@@ -39,10 +39,5 @@ class View
         http_response_code($code);
         require '../src/views/errors/' . $code . '.php';
         exit;
-    }
-
-    public function message($status, $message)
-    {
-        exit(json_encode(['status' => $status, 'message' => $message]));
     }
 }
