@@ -1,7 +1,10 @@
 <?php 
 
 namespace src\lib;
+
 use GuzzleHttp\Client;
+use src\models\User;
+
 
 class Parser
 {
@@ -50,4 +53,9 @@ class Parser
         }
     }
 
+    public function sendRatesToDatabase() {
+        $this->handleRequest();
+        $this->getDataRates();
+        return $this->params;
+    }
 }

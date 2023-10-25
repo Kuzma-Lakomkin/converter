@@ -11,15 +11,16 @@ document.addEventListener('DOMContentLoaded', function () {
             method: form.getAttribute('method'),
             body: formData,
         })
-        .then(response => response.json())
+        .then(response => {
+            if (response.ok) {
+                window.location.href = '/converter/user/rate';
+            } else {
+                return response.json();
+            }
+        })
         .then(data => {
             if (data.error) {
-                // Вставляем сообщение об ошибке внутри формы
                 errorContainer.textContent = data.error;
-            } else if (data.success) {
-                alert(data.success);
-                form.reset();
-                window.location.href = '/converter/user/rate';
             }
         })
         .catch(error => console.error('Error:', error));

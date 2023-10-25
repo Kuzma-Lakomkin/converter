@@ -12,7 +12,12 @@ class UserController extends Controller
 
     public function rateAction()
     {   
-        $listRates = $this->model->getRates();
+        if (empty($this->model->getRates())) {
+            $params = $this->parser->sendRatesToDatabase();
+            $listRates = $this->model->addRates($params);
+        } else {
+            $listRates = $this->model->getRates();
+        }
         $this->vars = [
             'rates' => $listRates,
         ];
@@ -20,11 +25,13 @@ class UserController extends Controller
     }
 
 
+
     public function converterAction()
     {
         $this->vars = [
             'valutes'=> $this->model->addRubles(),
         ];
+
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['from_currency'])) {
             // Если это POST-запрос, обрабатываем AJAX-запрос и возвращаем JSON
             $this->model->converter();

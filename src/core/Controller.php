@@ -3,6 +3,8 @@
 namespace src\core;
 
 use src\core\View;
+use src\lib\Parser;// добавил сюда парсер
+
 
 class Controller
 {
@@ -10,6 +12,7 @@ class Controller
     public $view;
     public $model;
     public $acl;
+    public $parser;
     
 
     public function __construct($route) 
@@ -20,6 +23,7 @@ class Controller
         }
         $this->view = new View($route);
         $this->model = $this->loadModel($route['controller']); //Че если не будет переменной. Будет Notice
+        $this->parser = new Parser();
     }
 
 

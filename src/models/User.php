@@ -3,50 +3,39 @@
 namespace src\models;
 
 use src\core\Model;
-use src\lib\Parser;
 
 
 class User extends Model
 {
-    protected $parser;
-    protected $rates;
+    public static $rates;
 
 
-    public function __construct()
+    public function addRates($params)
     {
-        parent::__construct();
-        $this->parser = new Parser;
-
-        $this->rates = $this->db->row('SELECT * FROM exchange_rate'); // при инициализации класса тащится вся таблица
-    }
-
-
-    public function addRates()
-    {
-        $this->parser->handleRequest(); //Скорее сервис должен использовать модель, а не наоборот. Так как модель представляет собой структуру данных, которую ты можешь использовать бизнес логике сервиса. Пример: одна модель может использоваться в твоем сервисе и в будущем в админке
-        $this->parser->getDataRates();
-        foreach ($this->parser->params as $param) {
+        foreach ($params as $param) {
             $this->db->query('INSERT INTO exchange_rate 
                             (num_code, char_code, nominal, valute, rate, vunit_rate, update_time)
                             VALUES (:num_code, :char_code, :nominal, :valute, :rate, :vunit_rate, :update_time)', $param);
         }
-        return $this->rates;
-        
+        return $this->getRates();
     }
 
 
     public function getRates()
     {
-        if (!empty($this->rates)) {
-            return $this->rates;
+        if (empty(self::$rates)) {
+            User::$rates = $this->db->row('SELECT * FROM exchange_rate');
+            return self::$rates;
         } else {
-            return $this->addRates();
+            return self::$rates;
         }
     }
 
 
     public function addRubles()
     {   
+        $this->getRates();
+
         $ruble = [
             'id' => 44,
             'num_code' => '643',
@@ -58,8 +47,8 @@ class User extends Model
             'update_time' => date('Y-m-d H:i:s'),
         ];
 
-        $this->rates[] = $ruble;
-        return $this->rates;
+        self::$rates[] = $ruble;
+        return self::$rates;
     }
 
 
@@ -74,7 +63,7 @@ class User extends Model
                 $toCurrency = 643;
             }
 
-            foreach ($this->rates as $item) {
+            foreach (self::$rates as $item) {
                 if ($fromCurrency != 643) {
                     if ($item['num_code'] == $fromCurrency) {
                         $vunit_rate = $item['vunit_rate'];
@@ -96,18 +85,5 @@ class User extends Model
     public function logout()
     {
         unset($_SESSION['authorize']);
-    }
-
-
-    public function updateRates()
-    {
-        if (!empty($this->rates)) {
-            $this->parser->handleRequest();
-            $this->parser->getDataRates();
-            foreach ($this->parser->params as $valute) {
-                $this->db->query('UPDATE exchange_rate SET rate = :rate, vunit_rate = :vunit_rate, update_time = :update_time', $valute);
-                return;
-            }
-        }
     }
 }   
