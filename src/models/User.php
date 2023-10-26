@@ -1,16 +1,26 @@
-<?php 
+<?php
 
 namespace src\models;
 
 use src\core\Model;
+use src\lib\Parser;
 
 
 class User extends Model
 {
-    public static $rates;
+    public static array $rates;
+    public Parser $parser;
+    public array $listRates;
 
 
-    public function addRates($params)
+    public function __construct()
+    {
+        parent::__construct();
+        $this->parser = new Parser();
+    }
+
+    // Добавление данных БД, если БД пустая
+    public function addRates(array $params) : array
     {
         foreach ($params as $param) {
             $this->db->query('INSERT INTO exchange_rate 
@@ -20,8 +30,8 @@ class User extends Model
         return $this->getRates();
     }
 
-
-    public function getRates()
+    // Получение всех валют из БД
+    public function getRates() : array
     {
         if (empty(self::$rates)) {
             User::$rates = $this->db->row('SELECT * FROM exchange_rate');
@@ -32,58 +42,35 @@ class User extends Model
     }
 
 
-    public function addRubles()
-    {   
-        $this->getRates();
-
-        $ruble = [
-            'id' => 44,
-            'num_code' => '643',
-            'char_code' => 'RUB',
-            'nominal' => 1,
-            'valute' => 'Российский рубль',
-            'rate' => 1, 
-            'vunit_rate' => 1,
-            'update_time' => date('Y-m-d H:i:s'),
-        ];
-
-        self::$rates[] = $ruble;
-        return self::$rates;
-    }
-
-
-    public function converter()
-    {
-        if (!empty($_POST)) {
-            $fromCurrency = $_POST['from_currency'];
-            $fromValue = $_POST['from'];
-            if (isset($_POST['to_currency'])) {
-                $toCurrency = $_POST["to_currency"];
-            } else {
-                $toCurrency = 643;
-            }
-
-            foreach (self::$rates as $item) {
-                if ($fromCurrency != 643) {
-                    if ($item['num_code'] == $fromCurrency) {
-                        $vunit_rate = $item['vunit_rate'];
-                        $amount = round($vunit_rate * $fromValue, 4);
-                        $result = ['amount' => $amount];
-                    }
-                } elseif ($item['num_code'] == $toCurrency) {
-                    $vunit_rate = $item['vunit_rate'];
-                    $amount = round($fromValue / $vunit_rate, 4);
-                    $result = ['amount' => $amount];
-                }
-            }
-        }   
-        header('Content-Type: application/json');
-        echo json_encode($result);    
-    }
-
-
-    public function logout()
+    public function logout() : void
     {
         unset($_SESSION['authorize']);
     }
-}   
+
+    // Обновление БД
+    public function updateRates() : void
+    {
+        $params = $this->parser->sendUpdateRateAndVunit();
+        foreach ($params as $param) {
+            $this->db->query('UPDATE exchange_rate SET  rate = :rate,
+                                                        vunit_rate = :vunit_rate,
+                                                        update_time = :update_time 
+                                                    WHERE valute = :valute', $param);
+        }
+        return;
+    }
+
+
+    // Проверка пустая ли БД, если нет, то записывает и возвращает данные
+    public function checkDatabase() : array
+    {
+        if (empty($this->getRates())) {
+            $params = $this->parser->sendRatesToDatabase();
+            $this->listRates = $this->addRates($params);
+            return $this->listRates;
+        } else {
+            $this->listRates = $this->getRates();
+            return $this->listRates;
+        }
+    }
+}

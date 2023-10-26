@@ -7,8 +7,8 @@ use src\core\View;
 
 class Router
 {
-    protected $routes = [];
-    protected $params = [];
+    protected array $routes = [];
+    protected array $params = [];
 
 
     public function __construct()
@@ -20,14 +20,14 @@ class Router
     }
 
 
-    public function add($route, $params)
+    public function add(string $route, array $params) : void
     {
         $route = "#^" . $route . "$#";
         $this->routes[$route] = $params;
     }
 
 
-    public function match()
+    public function match() : bool
     {
         $url = trim($_SERVER['QUERY_STRING'], '/');
         foreach ($this->routes as $route => $params) {
@@ -40,7 +40,7 @@ class Router
     }
 
 
-    public function run()
+    public function run() : void
     {
         if ($this->match()) {
             $controllerPath = 'src\controllers\\' . ucfirst($this->params['controller']) . 'Controller';

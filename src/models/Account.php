@@ -7,9 +7,8 @@ use src\core\Model;
 
 class Account extends Model
 {
-
-
-    public function addUserToBase()
+    //Добавление нового юзера в БД
+    public function addUserToBase() : void
     {
         $params = [
             'first_name' => $_POST['first_name'],
@@ -24,7 +23,8 @@ class Account extends Model
     }
 
 
-    public function checkLoginExists($login)
+    //Проверка свободен ли логин для использования
+    public function checkLoginExists(string $login) : bool
     {
         $params = [
             'login' => $login,
@@ -38,7 +38,8 @@ class Account extends Model
     }
     
     
-    public function entryToApplication()
+    // Авторизация
+    public function entryToApplication() : bool
     {
         $params = [
             'login' => $_POST['login'],

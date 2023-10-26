@@ -3,31 +3,28 @@
 namespace src\core;
 
 use src\core\View;
-use src\lib\Parser;// добавил сюда парсер
 
 
 class Controller
 {
-    public $route;
-    public $view;
+    public array $route;
+    public View $view;
     public $model;
-    public $acl;
-    public $parser;
+    public array $acl;
     
 
-    public function __construct($route) 
+    public function __construct(array $route) 
     {
-        $this->route = $route; //Тут вот как раз string $route Плюс проверку бы какую-нибудь и исключение типа, если роут пустой типа '' то new InvalidArgumentException
+        $this->route = $route;
         if (!$this->checkAcl()) {
             View::errorsCode(403);
         }
         $this->view = new View($route);
-        $this->model = $this->loadModel($route['controller']); //Че если не будет переменной. Будет Notice
-        $this->parser = new Parser();
+        $this->model = $this->loadModel($route['controller']); 
     }
 
 
-    public function loadModel($name) 
+    public function loadModel(string $name)
     {
         $path = 'src\models\\' . ucfirst($name);
         if (class_exists($path)) {
@@ -36,7 +33,7 @@ class Controller
     }
 
 
-    public function checkAcl()
+    public function checkAcl() : bool
     {
         $this->acl = require '../src/config/acl.php';
         if ($this->isAcl('all')) {
@@ -48,7 +45,7 @@ class Controller
     }
 
     
-    public function isAcl($key)
+    public function isAcl(string $key) : bool
     {
         return in_array($this->route['action'], $this->acl[$key]);
     }

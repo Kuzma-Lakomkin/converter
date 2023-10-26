@@ -7,7 +7,7 @@ use src\lib\Db;
 
 abstract class Model
 {
-    public $db;
+    public Db $db;
     public array $errors;
 
     

@@ -3,21 +3,19 @@
 namespace src\controllers;
 
 use src\core\Controller;
+use src\app\Converter;
 
 
 class UserController extends Controller
 {
-    public $vars;
+    public array $vars;
+    public array $listRates;
+    public Converter $converter;
 
 
     public function rateAction()
     {   
-        if (empty($this->model->getRates())) {
-            $params = $this->parser->sendRatesToDatabase();
-            $listRates = $this->model->addRates($params);
-        } else {
-            $listRates = $this->model->getRates();
-        }
+        $listRates = $this->model->checkDatabase();
         $this->vars = [
             'rates' => $listRates,
         ];
@@ -25,16 +23,17 @@ class UserController extends Controller
     }
 
 
-
     public function converterAction()
     {
+        $userRates = $this->model->checkDatabase();
+        $this->converter = new Converter($userRates);
         $this->vars = [
-            'valutes'=> $this->model->addRubles(),
+            'valutes'=> $this->converter->addRubles(),
         ];
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['from_currency'])) {
             // Если это POST-запрос, обрабатываем AJAX-запрос и возвращаем JSON
-            $this->model->converter();
+            $this->converter->converterCurrency();
         } else {
             // Если это GET-запрос, отображаем HTML-страницу
             $this->view->render("Конвертер валют", $this->vars);

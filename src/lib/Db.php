@@ -4,9 +4,11 @@ namespace src\lib;
 
 use PDO;
 
+
 class Db
 {
-    protected $db;
+    protected PDO $db;
+
 
     public function __construct()
     {
@@ -17,7 +19,8 @@ class Db
                             $config['pass']);
     }
 
-    public function query($sql, $params = [])
+
+    public function query(string $sql, array $params = [])
     {
         $query = $this->db->prepare($sql);
         if (!empty($params)) {
@@ -29,13 +32,15 @@ class Db
         return $query;
     }
 
-    public function row($sql, $params = [])
+
+    public function row(string $sql, array $params = [])
     {
         $result = $this->query($sql, $params);
         return $result->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function column($sql, $params = [])
+
+    public function column(string $sql, array $params = [])
     {
         $result = $this->query($sql, $params);
         return $result->fetchColumn();

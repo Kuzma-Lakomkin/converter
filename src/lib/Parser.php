@@ -8,10 +8,10 @@ use src\models\User;
 
 class Parser
 {
-    protected $client;
-    protected $url;
+    protected Client $client;
+    protected string $url;
     public $xml;
-    public $params;
+    public array $params;
 
     
     public function __construct()
@@ -20,7 +20,9 @@ class Parser
         $this->url = 'http://www.cbr.ru/scripts/XML_daily.asp';
     }
         
-    public function handleRequest()
+
+    //Метод получения данных с сайта ЦБ
+    public function handleRequest() : void
     {
         $response = $this->client->get($this->url);
         if ($response->getStatusCode() == 200) {
@@ -31,8 +33,11 @@ class Parser
         }
     }
 
-    public function getDataRates()
+
+    //Получение, обработка данных
+    public function getDataRates() : void
     {
+        $this->handleRequest();
         $this->params = [];
         date_default_timezone_set('Europe/Moscow');
         if ($this->xml) {
@@ -53,9 +58,27 @@ class Parser
         }
     }
 
-    public function sendRatesToDatabase() {
-        $this->handleRequest();
+
+    //Метод возвращает полученные данные из getDataRates
+    public function sendRatesToDatabase() : array
+    {
         $this->getDataRates();
         return $this->params;
+    }
+
+
+    // Метод возвращает только необходимые данные для обновления курсов валют
+    public function sendUpdateRateAndVunit() : array
+    {
+        $this->getDataRates();
+        foreach ($this->params as $value) {
+            $updateParams[] = [
+                'valute' => $value['valute'],
+                'rate' => $value['rate'],
+                'vunit_rate' => $value['vunit_rate'],
+                'update_time' => $value['update_time'],
+            ];
+        }
+        return $updateParams;
     }
 }
