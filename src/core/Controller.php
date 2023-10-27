@@ -35,7 +35,7 @@ class Controller
 
     public function checkAcl() : bool
     {
-        $this->acl = require '../src/config/acl.php';
+        $this->acl = require (__DIR__. '/../config/acl.php');
         if ($this->isAcl('all')) {
             return true;
         } elseif (isset($_SESSION['authorize'])) { 

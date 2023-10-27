@@ -13,7 +13,7 @@ class Router
 
     public function __construct()
     {
-        $arr = require '../src/config/routes.php';
+        $arr = require (__DIR__.'/../config/routes.php');
         foreach ($arr as $key => $value) {
         $this->add($key, $value);
         }

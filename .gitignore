@@ -1,5 +1,4 @@
 /vendor/
-src/config/db.php
 /.idea
 /.vscode
 /.fleet

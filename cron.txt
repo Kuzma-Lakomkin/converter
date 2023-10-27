@@ -1,1 +1,1 @@
-* * * * * /usr/bin/php /Applications/MAMP/htdocs/converter/src/cron/cron.php
+* */3 * * * [путь к интерпретатору] [абсолютный путь к исполняемому файлу]
