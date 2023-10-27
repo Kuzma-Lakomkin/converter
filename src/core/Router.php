@@ -4,26 +4,30 @@ namespace src\core;
 
 use src\core\View;
 
+
 class Router
 {
-    protected $routes = [];
-    protected $params = [];
+    protected array $routes = [];
+    protected array $params = [];
+
 
     public function __construct()
     {
-        $arr = require '../src/config/routes.php';
+        $arr = require (__DIR__.'/../config/routes.php');
         foreach ($arr as $key => $value) {
         $this->add($key, $value);
         }
     }
 
-    public function add($route, $params)
+
+    public function add(string $route, array $params) : void
     {
         $route = "#^" . $route . "$#";
         $this->routes[$route] = $params;
     }
 
-    public function match()
+
+    public function match() : bool
     {
         $url = trim($_SERVER['QUERY_STRING'], '/');
         foreach ($this->routes as $route => $params) {
@@ -35,14 +39,15 @@ class Router
         return false; 
     }
 
-    public function run()
+
+    public function run() : void
     {
         if ($this->match()) {
-            $controller_path = 'src\controllers\\' . ucfirst($this->params['controller']) . 'Controller';
-            if (class_exists($controller_path)) {
+            $controllerPath = 'src\controllers\\' . ucfirst($this->params['controller']) . 'Controller';
+            if (class_exists($controllerPath)) {
                 $action = $this->params['action'] . "Action";
-                if (method_exists($controller_path, $action)) {
-                    $controller = new $controller_path($this->params);
+                if (method_exists($controllerPath, $action)) {
+                    $controller = new $controllerPath($this->params);
                     $controller->$action();
                 } else {
                     View::errorsCode(404);
@@ -52,7 +57,6 @@ class Router
             }
         } else {
             View::errorsCode(404);
-        }
-        
+        }      
     }
 }

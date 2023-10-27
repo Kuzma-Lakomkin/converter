@@ -7,11 +7,12 @@ use src\lib\Db;
 
 abstract class Model
 {
-    public $db;
+    public Db $db;
     public array $errors;
 
+    
     public function __construct()
     {
-        $this->db = new Db;
+        $this->db = new Db();
     }
 }

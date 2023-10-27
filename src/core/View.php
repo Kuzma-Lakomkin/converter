@@ -5,17 +5,19 @@ namespace src\core;
 
 class View
 {
-    public $path;
-    public $route;
-    public $layout = 'default.php';
+    public string $path;
+    public array $route;
+    public string $layout = 'default.php';
 
-    public function __construct($route)
+
+    public function __construct(array $route)
     {
         $this->route = $route;
         $this->path = $this->route['controller'] . '/'. $this->route['action'] . '.php';
     }
 
-    public function render($title, $vars= [])
+
+    public function render(string $title, array $vars= [], $template=false)
     {   
         extract($vars);
         $views_path = '../src/views/' . $this->path;
@@ -29,20 +31,17 @@ class View
         }
     }
 
-    public function redirect($url)
+
+    public function redirect(string $url)
     {
-        header('location:', $url);
+        header('Location: ' . $url);
     }
 
-    public static function errorsCode($code)
+    
+    public static function errorsCode(int $code)
     {
         http_response_code($code);
         require '../src/views/errors/' . $code . '.php';
         exit;
-    }
-
-    public function message($status, $message)
-    {
-        exit(json_encode(['status' => $status, 'message' => $message]));
     }
 }

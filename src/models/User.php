@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 namespace src\models;
 
@@ -8,38 +8,69 @@ use src\lib\Parser;
 
 class User extends Model
 {
-    protected $parser;
-    protected $result;
+    public static array $rates;
+    public Parser $parser;
+    public array $listRates;
+
 
     public function __construct()
     {
         parent::__construct();
-        $this->parser = new Parser;
-        $this->result = $this->db->row('SELECT * FROM exchange_rate');
-    }
-    public function getRates()
-    {
-        if (!empty($this->result)) {
-            return $this->result;
-        } else {
-            return $this->addRates();
-        }
+        $this->parser = new Parser();
     }
 
-    public function addRates()
+    // Добавление данных БД, если БД пустая
+    public function addRates(array $params) : array
     {
-        $this->parser->handleRequest();
-        $this->parser->getDataRates();
-        foreach ($this->parser->params as $param) {
+        foreach ($params as $param) {
             $this->db->query('INSERT INTO exchange_rate 
                             (num_code, char_code, nominal, valute, rate, vunit_rate, update_time)
                             VALUES (:num_code, :char_code, :nominal, :valute, :rate, :vunit_rate, :update_time)', $param);
         }
-        $result = $this->db->row('SELECT * FROM exchange_rate');
-        return $result;
+        return $this->getRates();
     }
 
-    public function converter()
+    // Получение всех валют из БД
+    public function getRates() : array
     {
+        if (empty(self::$rates)) {
+            User::$rates = $this->db->row('SELECT * FROM exchange_rate');
+            return self::$rates;
+        } else {
+            return self::$rates;
+        }
     }
-}   
+
+
+    public function logout() : void
+    {
+        unset($_SESSION['authorize']);
+    }
+
+    // Обновление БД
+    public function updateRates() : void
+    {
+        $params = $this->parser->sendUpdateRateAndVunit();
+        foreach ($params as $param) {
+            $this->db->query('UPDATE exchange_rate SET  rate = :rate,
+                                                        vunit_rate = :vunit_rate,
+                                                        update_time = :update_time 
+                                                    WHERE valute = :valute', $param);
+        }
+        return;
+    }
+
+
+    // Проверка пустая ли БД, если нет, то записывает и возвращает данные
+    public function checkDatabase() : array
+    {
+        if (empty($this->getRates())) {
+            $params = $this->parser->sendRatesToDatabase();
+            $this->listRates = $this->addRates($params);
+            return $this->listRates;
+        } else {
+            $this->listRates = $this->getRates();
+            return $this->listRates;
+        }
+    }
+}

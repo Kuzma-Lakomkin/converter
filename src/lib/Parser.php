@@ -1,14 +1,17 @@
 <?php 
 
 namespace src\lib;
+
 use GuzzleHttp\Client;
+use src\models\User;
+
 
 class Parser
 {
-    protected $client;
-    protected $url;
+    protected Client $client;
+    protected string $url;
     public $xml;
-    public $params;
+    public array $params;
 
     
     public function __construct()
@@ -17,7 +20,9 @@ class Parser
         $this->url = 'http://www.cbr.ru/scripts/XML_daily.asp';
     }
         
-    public function handleRequest()
+
+    //Метод получения данных с сайта ЦБ
+    public function handleRequest() : void
     {
         $response = $this->client->get($this->url);
         if ($response->getStatusCode() == 200) {
@@ -28,8 +33,11 @@ class Parser
         }
     }
 
-    public function getDataRates()
+
+    //Получение, обработка данных
+    public function getDataRates() : void
     {
+        $this->handleRequest();
         $this->params = [];
         date_default_timezone_set('Europe/Moscow');
         if ($this->xml) {
@@ -40,7 +48,7 @@ class Parser
                     'nominal' => (string)$valute->Nominal,
                     'valute' => (string)$valute->Name,
                     'rate' => (string)$valute->Value,
-                    'vunit_rate' => (string)$valute->VunitRate,
+                    'vunit_rate' => (string)str_replace(',', '.', $valute->VunitRate),
                     'update_time' => date('Y-m-d H:i:s'),
                 ];
                 $this->params[] = $currentParams;
@@ -48,5 +56,29 @@ class Parser
         } else {
             echo "XML не загружен или пуст.";
         }
+    }
+
+
+    //Метод возвращает полученные данные из getDataRates
+    public function sendRatesToDatabase() : array
+    {
+        $this->getDataRates();
+        return $this->params;
+    }
+
+
+    // Метод возвращает только необходимые данные для обновления курсов валют
+    public function sendUpdateRateAndVunit() : array
+    {
+        $this->getDataRates();
+        foreach ($this->params as $value) {
+            $updateParams[] = [
+                'valute' => $value['valute'],
+                'rate' => $value['rate'],
+                'vunit_rate' => $value['vunit_rate'],
+                'update_time' => $value['update_time'],
+            ];
+        }
+        return $updateParams;
     }
 }

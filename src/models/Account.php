@@ -3,39 +3,55 @@
 namespace src\models;
 
 use src\core\Model;
-use Valitron\Validator;
 
 
 class Account extends Model
 {
-
-    public array $rules = [
-        'required' => ['first_name', 'last_name', 'login', 'password',],
-        'lengthBetween' => [
-            ['first_name', 1, 255],
-            ['last_name', 1, 255],
-            ['login', 1, 255],
-            ['password', 8, 255],
-        ],
-        'slug' => ['login'],
-    ];
-
-    public function validateRegistration($data)
+    //Добавление нового юзера в БД
+    public function addUserToBase() : void
     {
-        $validator = new Validator($data);
-        $validator->rules($this->rules);
-        if ($validator->validate()) {
-                $this->db->query('INSERT INTO users (first_name, last_name, login_user, password_user)
-                                VALUE (:first_name, :last_name, :login, :password)', $data);
-        return true;
+        $params = [
+            'first_name' => $_POST['first_name'],
+            'last_name' => $_POST['last_name'],
+            'login' => $_POST['login'],
+            'password' => password_hash($_POST['password'], PASSWORD_DEFAULT),
+
+        ];
+
+        $this->db->query('INSERT INTO users (first_name, last_name, login_user, password_user)
+                    VALUE (:first_name, :last_name, :login, :password)', $params); 
+    }
+
+
+    //Проверка свободен ли логин для использования
+    public function checkLoginExists(string $login) : bool
+    {
+        $params = [
+            'login' => $login,
+        ];
+
+        if ($this->db->column('SELECT id FROM users WHERE login_user = :login', $params)) {
+            return false;
         } else {
-            $this->errors = $validator->errors();
-            print_r($this->errors);
+            return true;
         }
     }
-
-    public function loginExists()
+    
+    
+    // Авторизация
+    public function entryToApplication() : bool
     {
-        
+        $params = [
+            'login' => $_POST['login'],
+        ];
+
+        $hashedPassword = $this->db->column('SELECT password_user FROM users WHERE login_user = :login', $params);
+
+        if (password_verify($_POST['password'], $hashedPassword)) {
+            $_SESSION['authorize'] = $params['login'];
+            return true;
+        } else {
+            return false;
+        }
     }
-}
+}   

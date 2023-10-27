@@ -4,22 +4,26 @@ namespace src\lib;
 
 use PDO;
 
+
 class Db
 {
-    protected $db;
+    protected PDO $db;
+
 
     public function __construct()
     {
-        $config = require '../src/config/db.php';
+        $config = require(__DIR__.'/../config/db.php');
         $this->db = new PDO('mysql:host=' . $config['host'] . 
+                            ';port=' . $config['port'] .
                             ';dbname='. $config['dbname'],
                             $config['user'],
                             $config['pass']);
     }
 
-    public function query($sql, $params = [])
+
+    public function query(string $sql, array $params = [])
     {
-        $query = $this->db->prepare($sql, $params);
+        $query = $this->db->prepare($sql);
         if (!empty($params)) {
             foreach ($params as $key => $value) {
                 $query->bindValue(':' . $key, $value);
@@ -29,15 +33,17 @@ class Db
         return $query;
     }
 
-    public function row($sql, $params = [])
+
+    public function row(string $sql, array $params = [])
     {
         $result = $this->query($sql, $params);
         return $result->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function column($sql, $params = [])
+
+    public function column(string $sql, array $params = [])
     {
         $result = $this->query($sql, $params);
-        return $result->fetchColumn(PDO::FETCH_ASSOC);
+        return $result->fetchColumn();
     }
 }
