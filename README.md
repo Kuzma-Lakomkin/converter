@@ -4,8 +4,9 @@
 
 ## Требования
 
-PHP 8.2
-Apache
++PHP 8.2
++Apache
++MySQL
 
 ## Настройка 
 
